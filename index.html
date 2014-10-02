@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<html lang="en">
+    <html>
+        <head> 
+            <script src="./d3.min.js"> </script> 
+            <script src="./queue.v1.min.js"></script>
+            <script src="./underscore-min.js"></script>
+            <script src="./genJSON.js"></script>
+            <link rel="stylesheet" href="./style.css">
+        </head>
+<body> <script type="text/javascript">
+
+var diameter = 5500;
+
+var tree = d3.layout.tree()
+            .size([360,  diameter / 2 - 200])
+            .separation(function(a, b) { 
+                return (a.parent == b.parent ? 2 : 4) / a.depth; 
+            });
+
+var diagonal = d3.svg.diagonal.radial()
+            .projection(function(d) { 
+                return [d.y, d.x / 180 * Math.PI]; 
+            });
+
+var canvas = d3.select("body").append("svg")
+            .attr("width", diameter)
+            .attr("height", diameter)
+            .append("g")
+            .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
+
+d3.csv("data.csv", function(error, csv) {    
+
+        var data = genJSON(csv, ['Specialty', 'Location']); // External Function Call
+
+        var nodes = tree.nodes(data),
+            links = tree.links(nodes);
+
+        var link = canvas.selectAll(".link")
+                    .data(links)
+                    .enter().append("path")
+                    .attr("class", "link")
+                    .attr("d", diagonal);
+
+        console.log(links[1].source.children[1].name);
+
+
+        /* AMG Root Node */
+        var rnode = canvas.selectAll(".amg")
+                    .data(nodes)
+                    .enter().append("g")
+                    .attr("class", "amg")
+                    .attr("transform", function(d) {
+                        return "rotate(" + (d.x + 155) + ")translate(" + d.y + ")"; 
+                    });
+
+        rnode.append("svg:circle")
+            .filter(function(d){ return d.depth == 0; })
+            .attr("r", 50);
+
+        rnode.append("svg:text")
+            .filter(function(d){ return d.depth ==0; })
+            .text("Avera Medical Group")
+            .style("font-size", "40px");
+
+        /* Specialty Node */
+        var snode = canvas.selectAll(".location")
+            .data(nodes)
+            .enter().append("g")
+            .attr("class", "location")
+            .attr("transform", function(d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; 
+                    });
+       
+        snode.append("circle")
+            .filter(function(d){ return d.depth == 1; }) 
+            .attr("r", 20);
+      
+        snode.append("svg:text")
+            .filter(function(d){ return d.depth ==1; })
+            .attr("dy", ".31em")
+            .attr("text-anchor", function(d) { 
+                    return d.x < 180 ? "start" : "end"; })
+            .attr("transform", function(d) { 
+                    return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+            .text(function(d) { return d.name; })
+            .style("font-size", "20px");
+
+        /* Location Node */
+        var lnode = canvas.selectAll(".specialty")
+            .data(nodes)
+            .enter().append("g")
+            .filter(function(d){ return d.depth == 2; })
+            .attr("class", "specialty")
+            .attr("transform", function(d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; 
+                    });
+        
+        lnode.append("circle")
+            .attr("r", 15);
+        
+        lnode.append("svg:text")
+            .attr("dy", ".31em")
+            .attr("text-anchor", function(d) { 
+                    return d.x < 180 ? "start" : "end"; })
+            .attr("transform", function(d) { 
+                    return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+            .text(function(d) { return d.name; })
+            .style("font-size", "20px");
+
+       /* Provider Node */
+       var pnode = canvas.selectAll(".provider")
+            .data(nodes)
+            .enter().append("g")
+            .filter(function(d){ if (d.depth == 3) {return d.Provider} ; })
+            .attr("class", "provider")
+            .attr("transform", function(d) {
+                    return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; 
+                    });
+
+        // Draw Provider Nodes at Level 3
+        pnode.append("svg:circle")
+            .attr("r", 5);
+
+        // Label Provider Nodes
+        pnode.append("svg:text")
+            .attr("dy", ".31em")
+            .attr("text-anchor", function(d) { 
+                    return d.x < 180 ? "start" : "end"; })
+            .attr("transform", function(d) { 
+                    return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+            .text(function(d) { return d.Provider; })
+            .style("font-size", "15px");
+
+
+});
+</script> </body>
