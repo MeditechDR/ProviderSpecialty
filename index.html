@@ -46,7 +46,7 @@ d3.csv("data.csv", function(error, csv) {
         console.log(links[1].source.children[1].name);
 
 
-        /* AMG Root Node */
+        /* Root Node */
         var rnode = canvas.selectAll(".amg")
                     .data(nodes)
                     .enter().append("g")
@@ -64,7 +64,7 @@ d3.csv("data.csv", function(error, csv) {
             .text("Avera Medical Group")
             .style("font-size", "40px");
 
-        /* Specialty Node */
+        /* Level 1 Specialty */
         var snode = canvas.selectAll(".location")
             .data(nodes)
             .enter().append("g")
@@ -87,7 +87,7 @@ d3.csv("data.csv", function(error, csv) {
             .text(function(d) { return d.name; })
             .style("font-size", "20px");
 
-        /* Location Node */
+        /* Level 2 Location Node */
         var lnode = canvas.selectAll(".specialty")
             .data(nodes)
             .enter().append("g")
@@ -109,7 +109,7 @@ d3.csv("data.csv", function(error, csv) {
             .text(function(d) { return d.name; })
             .style("font-size", "20px");
 
-       /* Provider Node */
+       /* Level 3 Provider */
        var pnode = canvas.selectAll(".provider")
             .data(nodes)
             .enter().append("g")
