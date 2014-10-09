@@ -10,41 +10,61 @@
             <link rel="stylesheet" href="./style.css">
         </head>
 <body> <script type="text/javascript">
-
-var diameter = 5500;
-
+// Define a color swatch as Oridnal scale
+var color = d3.scale.ordinal().range(['#37A45D', '#3B6F25', '#6ECF9E', '#2E8A7C', '#38A83C', '#287753', '#337E99']);
+// Set Diameter of the circular tree
+var diameter = 5000, radius = diameter / 2, branchlength = 500;
+// Define params of the Tree
 var tree = d3.layout.tree()
-            .size([360,  diameter / 2 - 200])
+            .size([360,  radius - branchlength]) 
             .separation(function(a, b) { 
                 return (a.parent == b.parent ? 2 : 4) / a.depth; 
             });
-
+// Define params of bezier curve branches
 var diagonal = d3.svg.diagonal.radial()
             .projection(function(d) { 
                 return [d.y, d.x / 180 * Math.PI]; 
             });
-
+// Setup SVG container
 var canvas = d3.select("body").append("svg")
             .attr("width", diameter)
             .attr("height", diameter)
             .append("g")
-            .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
-
+            .attr("transform", "translate(" + radius + "," + radius + ")");
+// Read the flat data file and apply callback function
 d3.csv("data.csv", function(error, csv) {    
-
+        // convert flat to hierarchical tree data structure
         var data = genJSON(csv, ['Specialty', 'Location']); // External Function Call
-
+        // Create nodes and links from hierarchical tree data
         var nodes = tree.nodes(data),
             links = tree.links(nodes);
-
+        // Instantiate an empty array 
+        var categoryArray = [];
+        // Iterate through flat data and collect Specialties 
+        csv.forEach (function(d,i) { categoryArray[i] = d.Specialty; });
+        // Create ES6 Set from array of Specialties
+        colorDomain = d3.set(categoryArray).values();
+        // Pass set of Specialties to Color mapper function
+        color.domain(colorDomain);
+        // Lets draw the branches/links   
         var link = canvas.selectAll(".link")
                     .data(links)
                     .enter().append("path")
-                    .attr("class", "link")
-                    .attr("d", diagonal);
-
-        console.log(links[1].source.children[1].name);
-
+                    .attr("d", diagonal)
+                    .attr("stroke-width", 1.5)
+                    .attr("fill", "none")
+                    .attr("stroke", function(d,i){
+                            // See http://stackoverflow.com/a/26189071/501393 
+                            if (d.source.depth === 1) {
+                            return color(d.source.name);
+                            } else if (d.source.depth === 2) {
+                            return color(d.source.parent.name);
+                            } else if (d.source.depth === 3) {
+                            return color (d.source.Specialty);
+                            } else {
+                            return "darkgray";
+                            }
+                            });
 
         /* Root Node */
         var rnode = canvas.selectAll(".amg")
@@ -57,25 +77,29 @@ d3.csv("data.csv", function(error, csv) {
 
         rnode.append("svg:circle")
             .filter(function(d){ return d.depth == 0; })
-            .attr("r", 50);
+            .attr("r", 75);
 
         rnode.append("svg:text")
             .filter(function(d){ return d.depth ==0; })
-            .text("Avera Medical Group")
-            .style("font-size", "40px");
+            .text("AMG")
+            .style("font-size", "50px")
+            .attr("dy", ".35em")
+            .attr("text-anchor", "middle");
 
         /* Level 1 Specialty */
         var snode = canvas.selectAll(".location")
             .data(nodes)
             .enter().append("g")
-            .attr("class", "location")
+            //.attr("class", "location")
             .attr("transform", function(d) {
                     return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; 
                     });
        
         snode.append("circle")
             .filter(function(d){ return d.depth == 1; }) 
-            .attr("r", 20);
+            .attr("r", 25)
+            .attr("fill", "none")
+            .attr("stroke", 'darkgreen');
       
         snode.append("svg:text")
             .filter(function(d){ return d.depth ==1; })
