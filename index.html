@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <html lang="en">
-    <html>
         <head> 
             <script src="./d3.min.js"> </script> 
             <script src="./queue.v1.min.js"></script>
@@ -11,11 +10,14 @@
         </head>
 <body> <script type="text/javascript">
 // Define a color swatch as Oridnal scale
-var color = d3.scale.ordinal().range(['#37A45D', '#3B6F25', '#6ECF9E', '#2E8A7C', '#38A83C', '#287753', '#337E99']);
+//var color = d3.scale.ordinal().range(['#37A45D', '#3B6F25', '#6ECF9E', '#2E8A7C', '#38A83C', '#287753', '#337E99']);
+
+var color = d3.scale.category20c();
+
 // Set Diameter of the circular tree
-var diameter = 5000, radius = diameter / 2, branchlength = 500;
+var diameter = 7000, radius = diameter / 2, branchlength = 500;
 // Define params of the Tree
-var tree = d3.layout.tree()
+var tree = d3.layout.cluster()
             .size([360,  radius - branchlength]) 
             .separation(function(a, b) { 
                 return (a.parent == b.parent ? 2 : 4) / a.depth; 
@@ -23,8 +25,9 @@ var tree = d3.layout.tree()
 // Define params of bezier curve branches
 var diagonal = d3.svg.diagonal.radial()
             .projection(function(d) { 
-                return [d.y, d.x / 180 * Math.PI]; 
+                return [d.y, d.x /180 * Math.PI]; 
             });
+
 // Setup SVG container
 var canvas = d3.select("body").append("svg")
             .attr("width", diameter)
@@ -72,21 +75,21 @@ d3.csv("data.csv", function(error, csv) {
                     .enter().append("g")
                     .attr("class", "amg")
                     .attr("transform", function(d) {
-                        return "rotate(" + (d.x + 155) + ")translate(" + d.y + ")"; 
+                        return "rotate(" + (d.x ) + ")translate(" + d.y + ")"; 
                     });
 
         rnode.append("svg:circle")
             .filter(function(d){ return d.depth == 0; })
-            .attr("r", 75);
+            .attr("r", 100);
 
         rnode.append("svg:text")
             .filter(function(d){ return d.depth ==0; })
             .text("AMG")
-            .style("font-size", "50px")
+            .style("font-size", "60px")
             .attr("dy", ".35em")
             .attr("text-anchor", "middle");
 
-        /* Level 1 Specialty */
+        /* Level Specialty */
         var snode = canvas.selectAll(".location")
             .data(nodes)
             .enter().append("g")
@@ -109,9 +112,9 @@ d3.csv("data.csv", function(error, csv) {
             .attr("transform", function(d) { 
                     return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
             .text(function(d) { return d.name; })
-            .style("font-size", "20px");
+            .style("font-size", "30px");
 
-        /* Level 2 Location Node */
+        /* Level Location Node */
         var lnode = canvas.selectAll(".specialty")
             .data(nodes)
             .enter().append("g")
@@ -131,7 +134,7 @@ d3.csv("data.csv", function(error, csv) {
             .attr("transform", function(d) { 
                     return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
             .text(function(d) { return d.name; })
-            .style("font-size", "20px");
+            .style("font-size", "25px");
 
        /* Level 3 Provider */
        var pnode = canvas.selectAll(".provider")
